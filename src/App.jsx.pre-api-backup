@@ -1,0 +1,464 @@
+
+import { useEffect, useMemo, useState } from 'react'
+import {
+    Library, Search, Sun, Moon, MapPin, BookOpen,
+  Bookmark, Clock3, MessageCircle, ArrowRight,
+  ArrowUpRight, X, Send, Menu, ChevronRight,
+  CircleHelp, Wifi, AlertCircle, 
+} from 'lucide-react'
+import './App.css'
+
+import cruelPrince from './assets/books/cruel-prince.jpeg'
+import howlsMovingCastle from './assets/books/howls-moving-castle.jpeg'
+import dune from './assets/books/dune.jpeg'
+import aminaAlSirafi from './assets/books/amina-al-sirafi.jpeg'
+import smokeAndScar from './assets/books/smoke-and-scar.jpeg'
+import placeForVanishing from './assets/books/place-for-vanishing.jpeg'
+import lighthouseWitches from './assets/books/lighthouse-witches.jpeg'
+import lute from './assets/books/lute.jpeg'
+import forgeryOfFate from './assets/books/forgery-of-fate.jpeg'
+import artOfDestiny from './assets/books/art-of-destiny.jpeg'
+import silverCrow from './assets/books/silver-crow.jpeg'
+import creatorsCall from './assets/books/creators-call.jpeg'
+import nightBloodPrince from './assets/books/night-blood-prince.jpeg'
+import acrossDarkSeas from './assets/books/across-dark-seas.jpeg'
+import ageOfStorms from './assets/books/age-of-storms.jpeg'
+import fragileEnchantement from './assets/books/fragile-enchantement.jpeg'
+import songSixRealms from './assets/books/song-six-realms.jpeg'
+import forgottenDawn from './assets/books/forgotten-dawn.jpeg'
+import shadowsAndDust from './assets/books/shadows-and-dust.jpeg'
+import prideAndPrejudice from './assets/books/pride-and-prejudice.jpeg'
+import persuasion from './assets/books/persuasion.jpeg'
+
+const catalogue = [
+  { id: 1, title: 'The Cruel Prince', author: 'Holly Black', cover: cruelPrince, genre: 'Fantasy' },
+  { id: 2, title: 'Howl’s Moving Castle', author: 'Diana Wynne Jones', cover: howlsMovingCastle, genre: 'Fantasy' },
+  { id: 3, title: 'Dune', author: 'Frank Herbert', cover: dune, genre: 'Science Fiction' },
+  { id: 4, title: 'The Adventures of Amina al-Sirafi', author: 'Shannon Chakraborty', cover: aminaAlSirafi, genre: 'Fantasy' },
+  { id: 5, title: 'Smoke and Scar', author: 'Gretchen Powell Fox', cover: smokeAndScar, genre: 'Fantasy' },
+  { id: 6, title: 'A Place for Vanishing', author: 'Ann Fraistat', cover: placeForVanishing, genre: 'Fiction' },
+  { id: 7, title: 'The Lighthouse Witches', author: 'C. J. Cooke', cover: lighthouseWitches, genre: 'Mystery' },
+  { id: 8, title: 'Lute', author: 'Jennifer Thorne', cover: lute, genre: 'Fiction' },
+  { id: 9, title: 'A Forgery of Fate', author: 'Elizabeth Lim', cover: forgeryOfFate, genre: 'Fantasy' },
+  { id: 10, title: 'The Art of Destiny', author: 'Wesley Chu', cover: artOfDestiny, genre: 'Fantasy' },
+  { id: 11, title: 'The Silver Crow', author: 'Details to verify', cover: silverCrow, genre: 'Fantasy' },
+  { id: 12, title: 'Creator’s Call', author: 'Costas Ioannou', cover: creatorsCall, genre: 'Fantasy' },
+  { id: 13, title: 'The Nightblood Prince', author: 'Molly X. Chang', cover: nightBloodPrince, genre: 'Fantasy' },
+  { id: 14, title: 'Across Dark Seas', author: 'Clare Sager', cover: acrossDarkSeas, genre: 'Fantasy' },
+  { id: 15, title: 'The Age of Storms: The Veins of Eternity', author: 'Rocco Levitas', cover: ageOfStorms, genre: 'Fantasy' },
+  { id: 16, title: 'Un Si Fragile Enchantement', author: 'Allison Saft', cover: fragileEnchantement, genre: 'Fantasy' },
+  { id: 17, title: 'Song of the Six Realms', author: 'Judy I. Lin', cover: songSixRealms, genre: 'Fantasy' },
+  { id: 18, title: 'The Forgotten Dawn', author: 'Laura A. Blake', cover: forgottenDawn, genre: 'Fiction' },
+  { id: 19, title: 'Shadows & Dust', author: 'Tory Guyon', cover: shadowsAndDust, genre: 'Fiction' },
+  { id: 20, title: 'Pride and Prejudice', author: 'Jane Austen', cover: prideAndPrejudice, genre: 'Classic Literature' },
+  { id: 21, title: 'Persuasion', author: 'Jane Austen', cover: persuasion, genre: 'Classic Literature' },
+]
+
+const sections = [
+  { id: 'discover', label: 'Discover', icon: Search },
+  { id: 'nearby', label: 'Nearby availability', icon: MapPin },
+  { id: 'loans', label: 'My loans', icon: BookOpen },
+  { id: 'holds', label: 'My holds', icon: Bookmark },
+  { id: 'assistant', label: 'AI librarian', icon: MessageCircle },
+]
+
+const genres = ['All subjects', 'Fantasy', 'Classic Literature', 'Fiction', 'Mystery', 'Science Fiction']
+
+function App() {
+  const [theme, setTheme] = useState('daylight')
+  const [section, setSection] = useState('discover')
+  const [query, setQuery] = useState('')
+  const [genre, setGenre] = useState('All subjects')
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [saved, setSaved] = useState([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatMessages, setChatMessages] = useState([
+    { role: 'assistant', text: 'Welcome to the Calico Library Network. You can ask me to help discover books by subject, author, or reading mood. Live branch availability will appear here once the availability service is connected.' },
+  ])
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [apiStatus, setApiStatus] = useState('checking')
+
+  useEffect(() => {
+    let active = true
+
+    fetch('http://localhost:8080/api/health')
+      .then((response) => {
+        if (!response.ok) throw new Error('Backend unavailable')
+        return response.json()
+      })
+      .then(() => {
+        if (active) setApiStatus('connected')
+      })
+      .catch(() => {
+        if (active) setApiStatus('offline')
+      })
+
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedBook) return undefined
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setSelectedBook(null)
+    }
+
+    document.addEventListener('keydown', closeOnEscape)
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape)
+      document.body.style.overflow = ''
+    }
+  }, [selectedBook])
+
+  const visibleBooks = useMemo(() => {
+    return catalogue.filter((book) => {
+      const matchesQuery = `${book.title} ${book.author}`.toLowerCase().includes(query.toLowerCase())
+      const matchesGenre = genre === 'All subjects' || book.genre === genre
+      const matchesSaved = section !== 'holds' || saved.includes(book.id)
+      return matchesQuery && matchesGenre && matchesSaved
+    })
+  }, [query, genre, section, saved])
+
+  const navigate = (nextSection) => {
+    setSection(nextSection)
+    setMobileNavOpen(false)
+    setSelectedBook(null)
+  }
+
+  const submitChat = (event) => {
+    event.preventDefault()
+    const message = chatInput.trim()
+    if (!message) return
+
+    setChatMessages((current) => [
+      ...current,
+      { role: 'user', text: message },
+      {
+        role: 'assistant',
+        text: 'This interface is ready for the library assistant, but the AI endpoint is not connected yet. I have not queried a language model or verified live stock. Once the backend endpoint is implemented, answers can include catalogue matches and real branch availability.',
+      },
+    ])
+    setChatInput('')
+  }
+
+  const toggleSaved = (id) => {
+    setSaved((current) => current.includes(id)
+      ? current.filter((savedId) => savedId !== id)
+      : [...current, id])
+  }
+
+  return (
+    <main className="calico-app" data-theme={theme}>
+      <header className="topbar">
+        <a className="wordmark" href="#home" onClick={() => navigate('discover')}>
+          <span className="wordmark-icon"><Library size={21} strokeWidth={1.5} /></span>
+          <span>CALICO <i>Library Network</i></span>
+        </a>
+
+        <button
+          className="mobile-menu-button"
+          onClick={() => setMobileNavOpen((open) => !open)}
+          aria-label="Toggle navigation"
+          aria-expanded={mobileNavOpen}
+        >
+          {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        <nav className={`main-nav ${mobileNavOpen ? 'nav-open' : ''}`} aria-label="Library navigation">
+          {sections.map(({ id, label }) => (
+            <button
+              key={id}
+              className={`nav-link ${section === id ? 'active' : ''}`}
+              onClick={() => navigate(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="topbar-actions">
+          <span className={`api-indicator ${apiStatus}`}>
+            <span className="api-dot" />
+            {apiStatus === 'connected' ? 'SYSTEM ONLINE' : apiStatus === 'checking' ? 'CONNECTING' : 'API OFFLINE'}
+          </span>
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme((current) => current === 'daylight' ? 'lamplight' : 'daylight')}
+            aria-label={`Switch to ${theme === 'daylight' ? 'Lamplight' : 'Daylight'} theme`}
+          >
+            {theme === 'daylight' ? <Moon size={16} /> : <Sun size={16} />}
+            <span>{theme === 'daylight' ? 'Lamplight' : 'Daylight'}</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="app-shell">
+        <aside className={`sidebar ${mobileNavOpen ? 'sidebar-open' : ''}`}>
+          <p className="sidebar-label">LIBRARY SERVICES</p>
+          {sections.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              className={`sidebar-link ${section === id ? 'selected' : ''}`}
+              onClick={() => navigate(id)}
+            >
+              <Icon size={17} strokeWidth={1.6} />
+              <span>{label}</span>
+              {section === id && <ChevronRight size={14} className="sidebar-chevron" />}
+            </button>
+          ))}
+
+          <div className="sidebar-divider" />
+          <p className="sidebar-label">YOUR COLLECTION</p>
+          <button className="sidebar-link" onClick={() => navigate('holds')}>
+            <Bookmark size={17} strokeWidth={1.6} />
+            <span>Saved books</span>
+            <span className="sidebar-count">{saved.length}</span>
+          </button>
+
+          <div className="sidebar-note">
+            <Library size={19} strokeWidth={1.4} />
+            <p className="sidebar-note-title">One network.<br />Many shelves.</p>
+            <p>Find a title across connected library branches.</p>
+          </div>
+
+          <div className="sidebar-help">
+            <CircleHelp size={15} />
+            <span>Library help</span>
+          </div>
+        </aside>
+
+        <div className="main-content">
+          <section className="welcome-strip">
+            <div>
+              <p className="eyebrow"><span /> CALICO LIBRARY NETWORK</p>
+              <h1>{section === 'discover' ? <>Find your next<br /><em>good read.</em></> :
+                section === 'nearby' ? <>Find it closer<br /><em>to home.</em></> :
+                section === 'loans' ? <>Your reading<br /><em>in progress.</em></> :
+                section === 'holds' ? <>Your saved<br /><em>library list.</em></> :
+                <>Ask the library<br /><em>anything.</em></>}</h1>
+              <p className="welcome-description">
+                {section === 'discover' && 'Search the catalogue once. Explore titles across the library network.'}
+                {section === 'nearby' && 'Find which branches have a copy available, then compare distances.'}
+                {section === 'loans' && 'Keep track of the books you have borrowed across branches.'}
+                {section === 'holds' && 'Keep a reading list of titles you want to find or request.'}
+                {section === 'assistant' && 'Get help exploring books, subjects and reading recommendations.'}
+              </p>
+            </div>
+
+            <div className="welcome-aside">
+              <div className="network-symbol"><MapPin size={21} strokeWidth={1.3} /></div>
+              <p className="aside-label">ONE SEARCH, MANY BRANCHES</p>
+              <p className="aside-quote">The right book, on the nearest shelf.</p>
+              <span className="aside-footnote">DISCOVER · LOCATE · BORROW</span>
+            </div>
+            <span className="welcome-index">CALICO / LIBRARY SERVICES</span>
+          </section>
+
+          {section === 'discover' && (
+            <section className="catalogue-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow section-eyebrow">NETWORK CATALOGUE</p>
+                  <h2>Explore the collection.</h2>
+                  <p className="section-subtitle">Search by title or author to start your discovery.</p>
+                </div>
+                <span className="result-count">{visibleBooks.length} TITLES SHOWN</span>
+              </div>
+
+              <label className="search-box">
+                <Search size={19} strokeWidth={1.6} />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search books, authors or subjects..."
+                  aria-label="Search the library catalogue"
+                />
+                {query && <button className="clear-search" onClick={() => setQuery('')} aria-label="Clear search"><X size={15} /></button>}
+              </label>
+
+              <div className="catalogue-toolbar">
+                <div className="category-filters" aria-label="Filter catalogue by subject">
+                  {genres.map((item) => (
+                    <button key={item} className={`category-chip ${genre === item ? 'selected' : ''}`} onClick={() => setGenre(item)}>
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="book-grid">
+                {visibleBooks.map((book, index) => (
+                  <article className="book-card" key={book.id} style={{ '--card-index': index }}>
+                    <button className="cover-button" onClick={() => setSelectedBook(book)} aria-label={`View ${book.title} catalogue record`}>
+                      <div className="cover-frame">
+                        <img className="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading={index > 5 ? 'lazy' : 'eager'} />
+                        <span className="cover-sheen" />
+                        <span className="inspect-hint">VIEW CATALOGUE RECORD <ArrowUpRight size={13} /></span>
+                      </div>
+                    </button>
+                    <div className="book-information">
+                      <div className="book-category">{book.genre}</div>
+                      <h3>{book.title}</h3>
+                      <p className="book-author">by {book.author}</p>
+                      <div className="book-card-footer">
+                        <span className="record-number">RECORD {String(book.id).padStart(3, '0')}</span>
+                        <button
+                          className={`save-button ${saved.includes(book.id) ? 'is-saved' : ''}`}
+                          onClick={() => toggleSaved(book.id)}
+                          aria-label={`${saved.includes(book.id) ? 'Remove' : 'Save'} ${book.title}`}
+                          title={saved.includes(book.id) ? 'Remove saved title' : 'Save title'}
+                        >
+                          {saved.includes(book.id) ? <Bookmark size={16} fill="currentColor" /> : <Bookmark size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {visibleBooks.length === 0 && (
+                <div className="empty-state">
+                  <BookOpen size={27} strokeWidth={1.2} />
+                  <h3>No matching titles.</h3>
+                  <p>Try a different search term or subject.</p>
+                  <button onClick={() => { setQuery(''); setGenre('All subjects') }}>Clear search</button>
+                </div>
+              )}
+            </section>
+          )}
+
+          {section === 'nearby' && (
+            <section className="service-section">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow section-eyebrow">BRANCH AVAILABILITY</p>
+                  <h2>Find an available copy.</h2>
+                  <p className="section-subtitle">Search a title, then compare available branches by distance.</p>
+                </div>
+              </div>
+              <label className="search-box availability-search">
+                <Search size={19} />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Enter a book title or author..." aria-label="Search for nearby availability" />
+                {query && <button className="clear-search" onClick={() => setQuery('')} aria-label="Clear search"><X size={15} /></button>}
+              </label>
+              <div className="service-notice">
+                <AlertCircle size={20} />
+                <div>
+                  <h3>Branch availability is not connected yet</h3>
+                  <p>The current backend exposes a health check and basic book CRUD. It does not yet provide branch coordinates, copy-level stock or distance-ranked results. This screen will show real availability after those backend services are implemented.</p>
+                </div>
+              </div>
+              <div className="availability-preview">
+                <div className="preview-map"><MapPin size={31} strokeWidth={1.2} /><span>NETWORK MAP</span><small>Branch locations will appear here</small></div>
+                <div className="preview-detail">
+                  <p className="eyebrow">WHAT YOU WILL SEE</p>
+                  <div><MapPin size={17} /><span>Nearest matching branch</span></div>
+                  <div><BookOpen size={17} /><span>Number of available copies</span></div>
+                  <div><ArrowRight size={17} /><span>Distance from your chosen location</span></div>
+                  <div><Wifi size={17} /><span>Current availability status</span></div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {section === 'loans' && (
+            <section className="service-section">
+              <p className="eyebrow section-eyebrow">MEMBER SERVICES</p>
+              <h2>My loans.</h2>
+              <div className="service-notice">
+                <Clock3 size={20} />
+                <div><h3>Loan records are not connected yet</h3><p>Your backend needs member authentication and checkout/return endpoints before this section can display real borrowed books or due dates.</p></div>
+              </div>
+              <div className="service-empty"><BookOpen size={28} /><h3>Your borrowed books will appear here.</h3><p>Once member accounts and loan operations are connected, you can review current loans and due dates.</p></div>
+            </section>
+          )}
+
+          {section === 'holds' && (
+            <section className="catalogue-section">
+              <div className="section-heading">
+                <div><p className="eyebrow section-eyebrow">YOUR READING LIST</p><h2>Saved titles.</h2><p className="section-subtitle">A local shortlist of books you want to find.</p></div>
+                <span className="result-count">{saved.length} SAVED</span>
+              </div>
+              <label className="search-box">
+                <Search size={19} />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search your saved titles..." aria-label="Search saved titles" />
+              </label>
+              {visibleBooks.length > 0 ? (
+                <div className="book-grid">
+                  {visibleBooks.map((book, index) => (
+                    <article className="book-card" key={book.id} style={{ '--card-index': index }}>
+                      <button className="cover-button" onClick={() => setSelectedBook(book)} aria-label={`View ${book.title}`}>
+                        <div className="cover-frame"><img className="book-cover" src={book.cover} alt={`Cover of ${book.title}`} /><span className="cover-sheen" /><span className="inspect-hint">VIEW CATALOGUE RECORD <ArrowUpRight size={13} /></span></div>
+                      </button>
+                      <div className="book-information"><div className="book-category">{book.genre}</div><h3>{book.title}</h3><p className="book-author">by {book.author}</p><div className="book-card-footer"><span className="record-number">SAVED TITLE</span><button className="save-button is-saved" onClick={() => toggleSaved(book.id)} aria-label={`Remove ${book.title} from saved titles`}><Bookmark size={16} fill="currentColor" /></button></div></div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="service-empty"><Bookmark size={28} /><h3>No saved titles yet.</h3><p>Browse the catalogue and use the bookmark icon to keep a title on your list.</p><button onClick={() => navigate('discover')}>Explore the catalogue</button></div>
+              )}
+              <p className="service-footnote">This is a browser-session shortlist, not a formal hold or reservation. Formal holds require the library hold-queue API.</p>
+            </section>
+          )}
+
+          {section === 'assistant' && (
+            <section className="service-section assistant-section">
+              <p className="eyebrow section-eyebrow">CALICO AI LIBRARIAN</p>
+              <h2>A question can open a shelf.</h2>
+              <p className="section-subtitle">Ask for help finding your next read.</p>
+              <div className="chat-panel">
+                <div className="chat-header"><span className="chat-avatar"><MessageCircle size={18} /></span><div><h3>Library assistant</h3><p><span className="api-dot" /> Catalogue-aware recommendations</p></div></div>
+                <div className="chat-messages" aria-live="polite">
+                  {chatMessages.map((message, index) => (
+                    <div key={`${message.role}-${index}`} className={`chat-message ${message.role}`}>
+                      {message.text}
+                    </div>
+                  ))}
+                </div>
+                <form className="chat-form" onSubmit={submitChat}>
+                  <input value={chatInput} onChange={(event) => setChatInput(event.target.value)} placeholder="Ask about books, authors or subjects..." aria-label="Message the library assistant" />
+                  <button type="submit" aria-label="Send message" disabled={!chatInput.trim()}><Send size={17} /></button>
+                </form>
+                <p className="chat-disclaimer">The AI service is not connected yet. Current replies explain this limitation rather than pretending to search live catalogue data.</p>
+              </div>
+            </section>
+          )}
+
+          <footer className="site-footer">
+            <a className="footer-wordmark" href="#home" onClick={() => navigate('discover')}>CALICO <i>Library Network</i></a>
+            <span>ONE NETWORK · MANY SHELVES</span>
+            <span>LIBRARY SERVICES / VOL. I</span>
+          </footer>
+        </div>
+      </div>
+
+      {selectedBook && (
+        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedBook(null) }}>
+          <section className="folio-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button className="modal-close" onClick={() => setSelectedBook(null)} aria-label="Close catalogue record"><X size={19} /></button>
+            <div className="modal-cover-wrap"><img src={selectedBook.cover} alt={`Cover of ${selectedBook.title}`} className="modal-cover" /><span className="modal-cover-caption">CALICO CATALOGUE · RECORD {String(selectedBook.id).padStart(3, '0')}</span></div>
+            <div className="modal-details">
+              <p className="eyebrow modal-eyebrow">CATALOGUE RECORD <span /></p>
+              <p className="modal-category">{selectedBook.genre}</p>
+              <h2 id="modal-title">{selectedBook.title}</h2>
+              <p className="modal-author">By <em>{selectedBook.author}</em></p>
+              <span className="modal-rule" />
+              <p className="modal-note-label">NETWORK AVAILABILITY</p>
+              <p className="modal-note">Branch-level stock and distance data are not connected yet. This record currently uses a local cover and display entry.</p>
+              <button className="modal-inscribe" onClick={() => { toggleSaved(selectedBook.id); }}>
+                <Bookmark size={16} /> {saved.includes(selectedBook.id) ? 'REMOVE SAVED TITLE' : 'SAVE THIS TITLE'}
+              </button>
+              <button className="modal-secondary" onClick={() => { setQuery(selectedBook.title); navigate('nearby'); }}>
+                <MapPin size={16} /> CHECK NEARBY AVAILABILITY
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </main>
+  )
+}
+
+export default App

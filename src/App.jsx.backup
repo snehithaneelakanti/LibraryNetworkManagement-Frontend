@@ -1,0 +1,292 @@
+
+import { useEffect, useState } from 'react'
+import {
+  Search,
+  Sun,
+  Moon,
+  BookOpen,
+  Bookmark,
+  BookmarkCheck,
+  X,
+  ArrowUpRight,
+  Library,
+  SlidersHorizontal,
+  ChevronDown,
+  Feather,
+} from 'lucide-react'
+import './App.css'
+
+import cruelPrince from './assets/books/cruel-prince.jpeg'
+import howlsMovingCastle from './assets/books/howls-moving-castle.jpeg'
+import dune from './assets/books/dune.jpeg'
+import aminaAlSirafi from './assets/books/amina-al-sirafi.jpeg'
+import smokeAndScar from './assets/books/smoke-and-scar.jpeg'
+import placeForVanishing from './assets/books/place-for-vanishing.jpeg'
+import lighthouseWitches from './assets/books/lighthouse-witches.jpeg'
+import lute from './assets/books/lute.jpeg'
+import forgeryOfFate from './assets/books/forgery-of-fate.jpeg'
+import artOfDestiny from './assets/books/art-of-destiny.jpeg'
+import silverCrow from './assets/books/silver-crow.jpeg'
+import creatorsCall from './assets/books/creators-call.jpeg'
+import nightBloodPrince from './assets/books/night-blood-prince.jpeg'
+import acrossDarkSeas from './assets/books/across-dark-seas.jpeg'
+import ageOfStorms from './assets/books/age-of-storms.jpeg'
+import fragileEnchantement from './assets/books/fragile-enchantement.jpeg'
+import songSixRealms from './assets/books/song-six-realms.jpeg'
+import forgottenDawn from './assets/books/forgotten-dawn.jpeg'
+import shadowsAndDust from './assets/books/shadows-and-dust.jpeg'
+import prideAndPrejudice from './assets/books/pride-and-prejudice.jpeg'
+import persuasion from './assets/books/persuasion.jpeg'
+
+const books = [
+  { id: 1, title: 'The Cruel Prince', author: 'Holly Black', cover: cruelPrince, category: 'Fantasy', note: 'A fantasy novel by Holly Black.' },
+  { id: 2, title: 'Howl’s Moving Castle', author: 'Diana Wynne Jones', cover: howlsMovingCastle, category: 'Fantasy', note: 'A fantasy novel by Diana Wynne Jones. The supplied image is illustrated movie artwork.' },
+  { id: 3, title: 'Dune', author: 'Frank Herbert', cover: dune, category: 'Science Fiction', note: 'A science-fiction novel by Frank Herbert. The supplied image is film-poster artwork.' },
+  { id: 4, title: 'The Adventures of Amina al-Sirafi', author: 'Shannon Chakraborty', cover: aminaAlSirafi, category: 'Fantasy', note: 'A fantasy adventure novel by Shannon Chakraborty.' },
+  { id: 5, title: 'Smoke and Scar', author: 'Gretchen Powell Fox', cover: smokeAndScar, category: 'Fantasy', note: 'The supplied cover identifies this as a Shattered Crown novel.' },
+  { id: 6, title: 'A Place for Vanishing', author: 'Ann Fraistat', cover: placeForVanishing, category: 'Fiction', note: 'A novel by Ann Fraistat.' },
+  { id: 7, title: 'The Lighthouse Witches', author: 'C. J. Cooke', cover: lighthouseWitches, category: 'Mystery', note: 'A novel by C. J. Cooke.' },
+  { id: 8, title: 'Lute', author: 'Jennifer Thorne', cover: lute, category: 'Fiction', note: 'The supplied cover reads Lute and names Jennifer Thorne.' },
+  { id: 9, title: 'A Forgery of Fate', author: 'Elizabeth Lim', cover: forgeryOfFate, category: 'Fantasy', note: 'A novel by Elizabeth Lim.' },
+  { id: 10, title: 'The Art of Destiny', author: 'Wesley Chu', cover: artOfDestiny, category: 'Fantasy', note: 'The War Arts Saga, Book Two, by Wesley Chu.' },
+  { id: 11, title: 'The Silver Crow', author: 'Trif Premade', cover: silverCrow, category: 'Fantasy', note: 'The supplied image is a cover-design image bearing the name Trif Premade. Verify the final book bibliographic details before publication.' },
+  { id: 12, title: 'Creator’s Call', author: 'Costas Ioannou', cover: creatorsCall, category: 'Fantasy', note: 'The supplied cover identifies Costas Ioannou as the author.' },
+  { id: 13, title: 'The Nightblood Prince', author: 'Molly X. Chang', cover: nightBloodPrince, category: 'Fantasy', note: 'A fantasy novel by Molly X. Chang.' },
+  { id: 14, title: 'Across Dark Seas', author: 'Clare Sager', cover: acrossDarkSeas, category: 'Fantasy', note: 'The supplied image was identified as a special-edition cover.' },
+  { id: 15, title: 'The Age of Storms: The Veins of Eternity', author: 'Rocco Levitas', cover: ageOfStorms, category: 'Fantasy', note: 'Catalogue details should be verified against the book’s publication record.' },
+  { id: 16, title: 'Un Si Fragile Enchantement', author: 'Allison Saft', cover: fragileEnchantement, category: 'Fantasy', note: 'French-language edition title supplied for the catalogue.' },
+  { id: 17, title: 'Song of the Six Realms', author: 'Judy I. Lin', cover: songSixRealms, category: 'Fantasy', note: 'A novel by Judy I. Lin.' },
+  { id: 18, title: 'The Forgotten Dawn', author: 'Laura A. Blake', cover: forgottenDawn, category: 'Fiction', note: 'Publication details need confirmation before adding a factual synopsis.' },
+  { id: 19, title: 'Shadows & Dust', author: 'Tory Guyon', cover: shadowsAndDust, category: 'Fiction', note: 'Publication details need confirmation before adding a factual synopsis.' },
+  { id: 20, title: 'Pride and Prejudice', author: 'Jane Austen', cover: prideAndPrejudice, category: 'Classic Literature', note: 'Jane Austen’s classic novel of manners, first published in 1813.' },
+  { id: 21, title: 'Persuasion', author: 'Jane Austen', cover: persuasion, category: 'Classic Literature', note: 'Jane Austen’s novel, published posthumously in 1817.' },
+]
+
+const categories = ['All books', 'Fantasy', 'Classic Literature', 'Fiction', 'Mystery', 'Science Fiction']
+
+function App() {
+  const [theme, setTheme] = useState('daylight')
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('All books')
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [savedBooks, setSavedBooks] = useState([])
+  const [showSavedOnly, setShowSavedOnly] = useState(false)
+  const [sortBy, setSortBy] = useState('curated')
+
+  const filteredBooks = books
+    .filter((book) => {
+      const matchesQuery = `${book.title} ${book.author}`.toLowerCase().includes(query.toLowerCase())
+      const matchesCategory = category === 'All books' || book.category === category
+      const matchesSaved = !showSavedOnly || savedBooks.includes(book.id)
+      return matchesQuery && matchesCategory && matchesSaved
+    })
+    .sort((a, b) => sortBy === 'title' ? a.title.localeCompare(b.title) : a.id - b.id)
+
+  const toggleSaved = (id) => {
+    setSavedBooks((current) =>
+      current.includes(id) ? current.filter((savedId) => savedId !== id) : [...current, id],
+    )
+  }
+
+  useEffect(() => {
+    if (!selectedBook) return undefined
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setSelectedBook(null)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [selectedBook])
+
+  return (
+    <main className="calico-app" data-theme={theme}>
+      <header className="topbar">
+        <a className="wordmark" href="#home" aria-label="Calico Library and Salon home">
+          <span className="wordmark-icon"><Library size={21} strokeWidth={1.5} /></span>
+          <span>CALICO <i>Library &amp; Salon</i></span>
+        </a>
+
+        <nav className="main-nav" aria-label="Main navigation">
+          <a className="nav-link active" href="#catalogue">The Catalogue</a>
+          <button className="nav-link" onClick={() => setShowSavedOnly(false)}>The Reading Room</button>
+          <button className="nav-link" onClick={() => setShowSavedOnly(true)}>My Folio</button>
+        </nav>
+
+        <div className="topbar-actions">
+          <span className="edition-label">A HOUSE OF STORIES</span>
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(theme === 'daylight' ? 'lamplight' : 'daylight')}
+            aria-label={`Switch to ${theme === 'daylight' ? 'Lamplight' : 'Daylight'} theme`}
+            title={`Switch to ${theme === 'daylight' ? 'Lamplight' : 'Daylight'}`}
+          >
+            {theme === 'daylight' ? <Moon size={16} /> : <Sun size={16} />}
+            <span>{theme === 'daylight' ? 'Lamplight' : 'Daylight'}</span>
+          </button>
+        </div>
+      </header>
+
+      <section className="hero-section" id="home">
+        <div className="hero-copy">
+          <p className="eyebrow"><span /> THE PRIVATE LIBRARY COLLECTION <span /></p>
+          <h1>For the love of<br /><em>getting lost.</em></h1>
+          <p className="hero-description">
+            A considered collection of stories, gathered for curious minds and unhurried afternoons.
+          </p>
+          <a className="hero-link" href="#catalogue">Wander through the shelves <ArrowUpRight size={15} /></a>
+        </div>
+        <div className="hero-aside">
+          <span className="aside-rule" />
+          <p className="aside-label">THE CALICO PRINCIPLE</p>
+          <p className="aside-quote">“A room without books is like a body without a soul.”</p>
+          <p className="aside-attribution">— Cicero, traditionally attributed</p>
+          <div className="collection-count">
+            <span className="count-number">{books.length.toString().padStart(2, '0')}</span>
+            <span className="count-label">TITLES IN THIS<br />DIGITAL COLLECTION</span>
+          </div>
+        </div>
+        <div className="hero-index">VOL. I&nbsp; / &nbsp;EST. MMXXVI</div>
+      </section>
+
+      <section className="catalogue-section" id="catalogue">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow section-eyebrow">THE BOOKSHELF</p>
+            <h2>{showSavedOnly ? 'Your personal folio' : 'A few good stories.'}</h2>
+            <p className="section-subtitle">
+              {showSavedOnly ? 'The volumes you have chosen to keep close.' : 'Browse slowly. Something will find you.'}
+            </p>
+          </div>
+          <div className="catalogue-meta">
+            <span>SHOWING <strong>{filteredBooks.length.toString().padStart(2, '0')}</strong> VOLUMES</span>
+            <span className="meta-divider" />
+            <button className="saved-filter" onClick={() => setShowSavedOnly(!showSavedOnly)}>
+              {showSavedOnly ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
+              {showSavedOnly ? 'All books' : 'My folio'}
+            </button>
+          </div>
+        </div>
+
+        <div className="catalogue-controls">
+          <label className="search-box">
+            <Search size={17} strokeWidth={1.6} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search titles, authors..."
+              aria-label="Search books by title or author"
+            />
+            {query && <button className="clear-search" onClick={() => setQuery('')} aria-label="Clear search"><X size={14} /></button>}
+          </label>
+
+          <div className="category-filters" aria-label="Filter by category">
+            {categories.map((item) => (
+              <button
+                key={item}
+                className={`category-chip ${category === item ? 'selected' : ''}`}
+                onClick={() => setCategory(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+
+          <label className="sort-control">
+            <SlidersHorizontal size={15} />
+            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sort books">
+              <option value="curated">Curated order</option>
+              <option value="title">Title A–Z</option>
+            </select>
+            <ChevronDown size={13} className="sort-chevron" />
+          </label>
+        </div>
+
+        {filteredBooks.length > 0 ? (
+          <div className="book-grid">
+            {filteredBooks.map((book, index) => (
+              <article className="book-card" key={book.id} style={{ '--card-index': index }}>
+                <button className="cover-button" onClick={() => setSelectedBook(book)} aria-label={`Inspect ${book.title}`}>
+                  <div className="cover-frame">
+                    <img className="book-cover" src={book.cover} alt={`Cover of ${book.title}`} loading={index > 5 ? 'lazy' : 'eager'} />
+                    <span className="cover-sheen" />
+                    <span className="inspect-hint">INSPECT FOLIO <ArrowUpRight size={13} /></span>
+                  </div>
+                </button>
+                <div className="book-information">
+                  <div className="book-category">{book.category}</div>
+                  <h3>{book.title}</h3>
+                  <p className="book-author">by {book.author}</p>
+                  <div className="book-card-footer">
+                    <span className="folio-number">C. {String(book.id).padStart(3, '0')}</span>
+                    <button
+                      className={`inscribe-button ${savedBooks.includes(book.id) ? 'is-saved' : ''}`}
+                      onClick={() => toggleSaved(book.id)}
+                      aria-label={`${savedBooks.includes(book.id) ? 'Remove' : 'Inscribe'} ${book.title} ${savedBooks.includes(book.id) ? 'from' : 'to'} your folio`}
+                      title={savedBooks.includes(book.id) ? 'Remove from folio' : 'Inscribe in your folio'}
+                    >
+                      {savedBooks.includes(book.id) ? <BookmarkCheck size={16} /> : <Feather size={16} />}
+                      <span>{savedBooks.includes(book.id) ? 'INSCRIBED' : 'INSCRIBE'}</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <BookOpen size={27} strokeWidth={1.2} />
+            <h3>No volumes found.</h3>
+            <p>Try another title or return to the full collection.</p>
+            <button onClick={() => { setQuery(''); setCategory('All books'); setShowSavedOnly(false) }}>Return to the shelves</button>
+          </div>
+        )}
+      </section>
+
+      <section className="closing-note">
+        <span className="closing-rule" />
+        <p className="closing-kicker">A NOTE FROM THE LIBRARIAN</p>
+        <p className="closing-quote">“There is no friend as loyal as a book.”</p>
+        <p className="closing-credit">— Ernest Hemingway, commonly attributed</p>
+        <span className="closing-flourish">✳</span>
+      </section>
+
+      <footer className="site-footer">
+        <a className="footer-wordmark" href="#home">CALICO <i>Library &amp; Salon</i></a>
+        <span>A SMALL DIGITAL LIBRARY FOR LARGE IMAGINATIONS</span>
+        <a href="#catalogue">BACK TO THE SHELVES ↑</a>
+      </footer>
+
+      {selectedBook && (
+        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedBook(null) }}>
+          <section className="folio-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button className="modal-close" onClick={() => setSelectedBook(null)} aria-label="Close book details"><X size={19} /></button>
+            <div className="modal-cover-wrap">
+              <img src={selectedBook.cover} alt={`Cover of ${selectedBook.title}`} className="modal-cover" />
+              <span className="modal-cover-caption">CALICO COLLECTION · C. {String(selectedBook.id).padStart(3, '0')}</span>
+            </div>
+            <div className="modal-details">
+              <p className="eyebrow modal-eyebrow">INSPECT FOLIO <span /></p>
+              <p className="modal-category">{selectedBook.category}</p>
+              <h2 id="modal-title">{selectedBook.title}</h2>
+              <p className="modal-author">Written by <em>{selectedBook.author}</em></p>
+              <span className="modal-rule" />
+              <p className="modal-note-label">FROM THE CATALOGUE</p>
+              <p className="modal-note">{selectedBook.note}</p>
+              <p className="modal-disclaimer">Edition-specific publication details may require verification.</p>
+              <button className="modal-inscribe" onClick={() => toggleSaved(selectedBook.id)}>
+                {savedBooks.includes(selectedBook.id) ? <BookmarkCheck size={16} /> : <Feather size={16} />}
+                {savedBooks.includes(selectedBook.id) ? 'REMOVE FROM MY FOLIO' : 'INSCRIBE IN MY FOLIO'}
+              </button>
+              <p className="modal-footnote">A GOOD BOOK ALWAYS LEAVES A TRACE.</p>
+            </div>
+          </section>
+        </div>
+      )}
+    </main>
+  )
+}
+
+export default App
